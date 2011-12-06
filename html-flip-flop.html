@@ -8,21 +8,17 @@
 			var ctx;
 			
 			var scale = 1;
-			var scaleLimit = -1;
 			var scaleInc = -0.1;
 			
             function init() {
 				ctx = document.getElementById('myCanvas').getContext('2d');
                 img.src = "images/ani1.gif";
 				img2.src = "images/C64.gif";
-				draw();
+				setTimeout(draw,10);
             }
 
 			function flip(){
-                // var ctx = document.getElementById('myCanvas').getContext('2d');
-                //ctx.globalCompositeOperation = 'destination-over';
-				
-				ctx.save();
+ 				ctx.save();
 				ctx.clearRect(0,0,60,60);
 				ctx.translate(30,0); // to get it in the origin
 				scale += scaleInc;
@@ -47,7 +43,6 @@
             }
             
 			function draw(){
-                // var ctx = document.getElementById('myCanvas').getContext('2d');
                 ctx.drawImage(img,0,0);
 				ctx.drawImage(img,300,300);
             }
