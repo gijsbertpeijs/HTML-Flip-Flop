@@ -4,41 +4,67 @@
         <title>HTML Flip Flop</title>
         <script type="text/javascript">
             var img = new Image();
-			var img2 = new Image();
 			var ctx;
 			
+			var images;
+			var numOfCols;
+			var numOfRows;
+			
+			var availWidth;
+			var availHeight;
+
 			var scale = 1;
 			var scaleInc = -0.1;
 			
             function init() {
 				ctx = document.getElementById('myCanvas').getContext('2d');
+				document.getElementById('myCanvas').addEventListener('click', mouse_click, false);
+				availWidth  = window.innerWidth-15;
+				availHeight = window.innerHeight-15;
+				ctx.canvas.width = availWidth;
+				ctx.canvas.height = availHeight;
+				
+				numOfCols = 6;
+				numOfRows = 4;
+				images = new Array(numOfCols*numOfRows);
+				initImageArray();
+				
                 img.src = "images/ani1.gif";
-				img2.src = "images/C64.gif";
-				setTimeout(draw,10);
+				setTimeout(drawAll,10);
             }
 
-			function flip(){
+			function initImageArray() {
+				for (var idx = 0; idx<images.length;idx++) {
+					images[idx] = "images/C64.gif";
+				}
+			}
+			
+			function flip(selectedX, selectedY){
  				ctx.save();
-				ctx.clearRect(0,0,60,60);
-				ctx.translate(30,0); // to get it in the origin
+				ctx.clearRect(selectedX * 70,selectedY * 70,60,60);
+				ctx.translate((selectedX * 70) + 30,0); // to get it in the origin
 				scale += scaleInc;
 				scale = roundNumber(scale,1); // round number, otherwise you end up with -0.9999999 or something!
 				ctx.scale(scale,1);
-				ctx.translate(-30,0); //put it back
-				ctx.drawImage(img,0,0);
+				ctx.translate((selectedX * 70) - 30,0); //put it back
+				ctx.drawImage(img,selectedX * 70,selectedY * 70);
 				ctx.restore();
 				
 				if (scale < 1) {
 					if (scale == 0) {
 						// switch the image source (back/front)
-						var swapImage = img.src;
-						img.src = img2.src; // flip image source
-						img2.src = swapImage;
+						if (scaleInc < 0) {
+							// flipping to the image side
+							img.src = images[numOfCols * selectedX + selectedY]; 
+						} else {
+							// flipping to the generic backside
+							img.src = "images/ani1.gif";
+						}
 						scaleInc = scaleInc * -1; 
 					}
-					setTimeout(flip, 8); // call myself with slight delay
+					setTimeout(flip(selectedX, selectedY), 8); // call myself with slight delay
 				} else {
-					scaleInc = scaleInc * -1; // restore scaleInc for the next flip
+					scaleInc = scaleInc * -1; // Finished scaling. Restore scaleInc for the next flip
 				}
             }
             
@@ -47,6 +73,32 @@
 				ctx.drawImage(img,300,300);
             }
 			
+			function drawAll(){
+				for (var x = 0; x<numOfCols;x++) {
+					for (var y = 0; y<numOfRows;y++) {
+						ctx.drawImage(img,x*70,y*70);
+					}
+				}
+            }
+			
+			function mouse_click(ev){
+				var x, y;
+
+				// Get the mouse position relative to the canvas element.
+				if (ev.layerX || ev.layerX == 0) { // Firefox
+					x = ev.layerX;
+					y = ev.layerY;
+				} else if (ev.offsetX || ev.offsetX == 0) { // Opera
+					x = ev.offsetX;
+					y = ev.offsetY;
+				}
+				
+				var selectedX = roundNumber(x/70,0) - 1;
+				var selectedY = roundNumber(y/70,0) - 1;
+				
+				flip(selectedX, selectedY);
+			}
+
 			function roundNumber(number, digits) {
 				var multiple = Math.pow(10, digits);
 				var rndedNum = Math.round(number * multiple) / multiple;
