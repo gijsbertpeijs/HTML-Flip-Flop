@@ -21,8 +21,8 @@
 				document.getElementById('myCanvas').addEventListener('click', mouse_click, false);
 				availWidth  = window.innerWidth-15;
 				availHeight = window.innerHeight-15;
-				ctx.canvas.width = availWidth;
-				ctx.canvas.height = availHeight;
+				// ctx.canvas.width = availWidth;
+				// ctx.canvas.height = availHeight;
 				
 				numOfCols = 6;
 				numOfRows = 4;
@@ -44,10 +44,10 @@
 				ctx.clearRect(selectedX * 70,selectedY * 70,60,60);
 				ctx.translate((selectedX * 70) + 30,0); // to get it in the origin
 				scale += scaleInc;
-				scale = roundNumber(scale,1); // round number, otherwise you end up with -0.9999999 or something!
+				scale = roundNumber(scale,1); // round number, otherwise you end up with 0.9999999 or something!
 				ctx.scale(scale,1);
+				ctx.drawImage(img,-30,selectedY * 70);
 				ctx.translate((selectedX * 70) - 30,0); //put it back
-				ctx.drawImage(img,selectedX * 70,selectedY * 70);
 				ctx.restore();
 				
 				if (scale < 1) {
@@ -55,14 +55,15 @@
 						// switch the image source (back/front)
 						if (scaleInc < 0) {
 							// flipping to the image side
-							img.src = images[numOfCols * selectedX + selectedY]; 
+							img.src = images[numOfCols * selectedY + selectedX];
 						} else {
 							// flipping to the generic backside
 							img.src = "images/ani1.gif";
 						}
 						scaleInc = scaleInc * -1; 
 					}
-					setTimeout(flip(selectedX, selectedY), 8); // call myself with slight delay
+					//  The timeout construct bellow doesn't work in IE. Who cares!
+					setTimeout(flip, 8, selectedX, selectedY); // call myself with an 8 ms delay.
 				} else {
 					scaleInc = scaleInc * -1; // Finished scaling. Restore scaleInc for the next flip
 				}
@@ -108,9 +109,9 @@
         </script>
     </head>
     <body onload="init()">
-        <canvas width="400" height="400" id="myCanvas">
+        <canvas width="500" height="300" id="myCanvas">
 			Oops, your browser does not support Canvas. Time to upgrade buddy.
 		</canvas>
-		<button onclick="flip()">Flip</button>
+		<button onclick="drawAll()">Redraw</button>
     </body>
 </html>
