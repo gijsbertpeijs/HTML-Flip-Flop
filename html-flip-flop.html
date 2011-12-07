@@ -10,6 +10,7 @@
 			var selectedTiles = new Array(); // array containing selected tiles
 			var numOfCols;
 			var numOfRows;
+			var numOfTilesRemaining;
 			
 			var availWidth;
 			var availHeight;
@@ -27,6 +28,7 @@
 				
 				numOfCols = 6;
 				numOfRows = 4;
+				numOfTilesRemaining = numOfCols * numOfRows;
 				tiles = new Array(numOfCols*numOfRows);
 				initImageArray();
 				
@@ -88,6 +90,17 @@
 				selectedTiles = new Array();
 			}
 			
+			function clearImage(image) {
+				ctx.clearRect(image.X * 70,image.Y * 70,60,60);
+			}
+			
+			function clearSelected() {
+				for (var idx = 0; idx<selectedTiles.length; idx++) {
+					clearImage(selectedTiles[idx]);
+				}
+				selectedTiles = new Array();
+			}
+			
 			function drawAll(){
 				for (var idx = 0; idx<tiles.length; idx++) {
 					ctx.drawImage(img, tiles[idx].X * 70, tiles[idx].Y * 70);
@@ -108,15 +121,31 @@
 				
 				var selX = roundNumber((x+35)/70,0) - 1;
 				var selY = roundNumber((y+35)/70,0) - 1;
-				selectedTiles[selectedTiles.length] = tiles[numOfCols * selY + selX];
 				
-				// Check if 2 tiles have been flipped
-				if (selectedTiles.length == 2) {
-					document.getElementById('myCanvas').removeEventListener('click', mouse_click, false);
-					flip(selectedTiles[selectedTiles.length - 1], false);
-					setTimeout(flipBack,1000);
+				if (tiles[numOfCols * selY + selX].flipped) {
+					// Nothing to do. Clicked tile is already out of the game.
 				} else {
-					flip(selectedTiles[selectedTiles.length - 1], false);
+					selectedTiles[selectedTiles.length] = tiles[numOfCols * selY + selX];
+					
+					// Check if 2 tiles have been flipped
+					if (selectedTiles.length == 2) {
+						document.getElementById('myCanvas').removeEventListener('click', mouse_click, false);
+						flip(selectedTiles[selectedTiles.length - 1], false);
+						
+						if (selectedTiles[0].src == selectedTiles[1].src) {
+							// Tiles are equal. Clear them and take them out of the game
+							selectedTiles[0].flipped = true;
+							selectedTiles[1].flipped = true;
+							numOfTilesRemaining -= 2;
+							setTimeout(clearSelected, 800);
+							document.getElementById('myCanvas').addEventListener('click', mouse_click, false);
+						} else {
+							// Unlucky! Not equal. Flip them back.
+							setTimeout(flipBack,1000);
+						}
+					} else {
+						flip(selectedTiles[selectedTiles.length - 1], false);
+					}
 				}
 			}
 
