@@ -6,12 +6,10 @@
             var img = new Image();
 			var ctx;
 			
-			var images;
+			var tiles; // array containing tiles
+			var selectedTiles = new Array(); // array containing selected tiles
 			var numOfCols;
 			var numOfRows;
-			var numSelected = 0;
-			var selX = new Array(3);
-			var selY = new Array(3);
 			
 			var availWidth;
 			var availHeight;
@@ -29,7 +27,7 @@
 				
 				numOfCols = 6;
 				numOfRows = 4;
-				images = new Array(numOfCols*numOfRows);
+				tiles = new Array(numOfCols*numOfRows);
 				initImageArray();
 				
                 img.src = "images/ani1.gif";
@@ -37,20 +35,27 @@
             }
 
 			function initImageArray() {
-				for (var idx = 0; idx<images.length;idx++) {
-					images[idx] = "images/C64.gif";
+				for (var x = 0; x<numOfCols;x++) {
+					for (var y = 0; y<numOfRows;y++) {
+						var img = new Image();
+						img.src = "images/C64.gif";
+						img.flipped = false;
+						img.X = x;
+						img.Y = y;
+						tiles[numOfCols * y + x] = img;
+					}
 				}
 			}
 			
-			function flip(selectedX, selectedY, flipBack){
+			function flip(image, flipBack){
  				ctx.save();
-				ctx.clearRect(selectedX * 70,selectedY * 70,60,60);
-				ctx.translate((selectedX * 70) + 30,0); // to get it in the origin
+				ctx.clearRect(image.X * 70,image.Y * 70,60,60);
+				ctx.translate((image.X * 70) + 30,0); // to get it in the origin
 				scale += scaleInc;
 				scale = roundNumber(scale,1); // round number, otherwise you end up with 0.9999999 or something!
 				ctx.scale(scale,1);
-				ctx.drawImage(img,-30,selectedY * 70);
-				ctx.translate((selectedX * 70) - 30,0); //put it back
+				ctx.drawImage(img,-30,image.Y * 70);
+				ctx.translate((image.X * 70) - 30,0); //put it back
 				ctx.restore();
 				
 				if (scale < 1) {
@@ -61,30 +66,31 @@
 							img.src = "images/ani1.gif";
 						} else {
 							// flipping to the image backside
-							img.src = images[numOfCols * selectedY + selectedX];
+							img.src = image.src;
 						}
 						scaleInc = scaleInc * -1; 
 					}
 					//  The timeout construct bellow doesn't work in IE. Who cares!
-					setTimeout(flip, 8, selectedX, selectedY, flipBack); // call myself with an 8 ms delay.
+					setTimeout(flip, 8, image, flipBack); // call myself with an 8 ms delay.
 				} else {
 					scaleInc = scaleInc * -1; // Finished scaling. Restore scaleInc for the next flip
+					img.src = "images/ani1.gif";
 				}
             }
             
 			function flipBack() {
-				for (var idx=0;idx<2;idx++) {
-					flip(selX[idx], selY[idx], true);
+				for (var idx = 0; idx<selectedTiles.length; idx++) {
+					flip(selectedTiles[idx], true);
+					// alert('woetie!');
 				}
 				
 				document.getElementById('myCanvas').addEventListener('click', mouse_click, false);
+				selectedTiles = new Array();
 			}
 			
 			function drawAll(){
-				for (var x = 0; x<numOfCols;x++) {
-					for (var y = 0; y<numOfRows;y++) {
-						ctx.drawImage(img,x*70,y*70);
-					}
+				for (var idx = 0; idx<tiles.length; idx++) {
+					ctx.drawImage(img, tiles[idx].X * 70, tiles[idx].Y * 70);
 				}
             }
 			
@@ -100,19 +106,17 @@
 					y = ev.offsetY;
 				}
 				
-				numSelected++;
-				
-				selX[numSelected - 1] = roundNumber((x+35)/70,0) - 1;
-				selY[numSelected - 1] = roundNumber((y+35)/70,0) - 1;
+				var selX = roundNumber((x+35)/70,0) - 1;
+				var selY = roundNumber((y+35)/70,0) - 1;
+				selectedTiles[selectedTiles.length] = tiles[numOfCols * selY + selX];
 				
 				// Check if 2 tiles have been flipped
-				if (numSelected == 2) {
+				if (selectedTiles.length == 2) {
 					document.getElementById('myCanvas').removeEventListener('click', mouse_click, false);
-					flip(selX[numSelected - 1], selY[numSelected - 1], false);
-					numSelected = 0;
+					flip(selectedTiles[selectedTiles.length - 1], false);
 					setTimeout(flipBack,1000);
 				} else {
-					flip(selX[numSelected - 1], selY[numSelected - 1], false);
+					flip(selectedTiles[selectedTiles.length - 1], false);
 				}
 			}
 
@@ -121,13 +125,12 @@
 				var rndedNum = Math.round(number * multiple) / multiple;
 				return rndedNum;
 			}
-
+			
         </script>
     </head>
     <body onload="init()">
         <canvas width="500" height="300" id="myCanvas">
 			Oops, your browser does not support Canvas. Time to upgrade buddy.
 		</canvas>
-		<button onclick="drawAll()">Redraw</button>
     </body>
 </html>
