@@ -51,9 +51,9 @@
 			function initTilesArray() {
 				// Create and array of file names "1.jpg" up to "<numOfTiles / 2>.jpg" in pairs and shuffle them
 				var fileNames = new Array(numOfTilesRemaining);
-				for (var idx = 0; idx < numOfTilesRemaining / 2; idx++) {
+				for (var idx = 0; idx < (numOfTilesRemaining / 2); idx++) {
 					fileNames[idx] = (idx + 1) + ".jpg";
-					fileNames[idx + numOfTilesRemaining] = (idx + 1) + ".jpg";
+					fileNames[idx + (numOfTilesRemaining / 2)] = (idx + 1) + ".jpg";
 				}
 				fileNames.shuffle();
 				
@@ -62,6 +62,7 @@
 						var img = new Image();
 						img.src = "images/" + tileSet + "/" + fileNames[numOfCols * y + x];
 						img.flipped = false;
+						img.finished = false;
 						img.X = x;
 						img.Y = y;
 						tiles[numOfCols * y + x] = img;
@@ -103,7 +104,7 @@
 			function flipBack() {
 				for (var idx = 0; idx<selectedTiles.length; idx++) {
 					flip(selectedTiles[idx], true);
-					// alert('woetie!');
+					selectedTiles[idx].flipped = false;
 				}
 				
 				document.getElementById('myCanvas').addEventListener('click', mouse_click, false);
@@ -143,10 +144,11 @@
 				var selX = roundNumber((x+((imageSize + imageSpacing)/2))/(imageSize + imageSpacing),0) - 1;
 				var selY = roundNumber((y+((imageSize + imageSpacing)/2))/(imageSize + imageSpacing),0) - 1;
 				
-				if (tiles[numOfCols * selY + selX].flipped) {
-					// Nothing to do. Clicked tile is already out of the game.
+				if (tiles[numOfCols * selY + selX].flipped || tiles[numOfCols * selY + selX].finished) {
+					// Nothing to do. Clicked tile is already flipped or out of the game.
 				} else {
 					selectedTiles[selectedTiles.length] = tiles[numOfCols * selY + selX];
+					tiles[numOfCols * selY + selX].flipped = true;
 					
 					// Check if 2 tiles have been flipped
 					if (selectedTiles.length == 2) {
@@ -155,8 +157,8 @@
 						
 						if (selectedTiles[0].src == selectedTiles[1].src) {
 							// Tiles are equal. Clear them and take them out of the game
-							selectedTiles[0].flipped = true;
-							selectedTiles[1].flipped = true;
+							selectedTiles[0].finished = true;
+							selectedTiles[1].finished = true;
 							numOfTilesRemaining -= 2;
 							setTimeout(clearSelected, 800);
 							
@@ -167,7 +169,7 @@
 							}
 						} else {
 							// Unlucky! Not equal. Flip them back.
-							setTimeout(flipBack,1000);
+							setTimeout(flipBack,1500);
 						}
 					} else {
 						flip(selectedTiles[selectedTiles.length - 1], false);
