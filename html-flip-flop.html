@@ -11,6 +11,7 @@
 			var numOfCols;
 			var numOfRows;
 			var numOfTilesRemaining;
+			var tileSet; // names of the tile set used
 			
 			var availWidth;
 			var availHeight;
@@ -38,19 +39,28 @@
 				
 				numOfCols = 6;
 				numOfRows = 4;
+				tileSet = "numbers";
 				numOfTilesRemaining = numOfCols * numOfRows;
 				tiles = new Array(numOfCols*numOfRows);
 				initTilesArray();
 				
-                img.src = "images/ani1.gif";
+                img.src = "images/" + tileSet + "/back.jpg";
 				setTimeout(drawAll,10);
             }
 
 			function initTilesArray() {
+				// Create and array of file names "1.jpg" up to "<numOfTiles / 2>.jpg" in pairs and shuffle them
+				var fileNames = new Array(numOfTilesRemaining);
+				for (var idx = 0; idx < numOfTilesRemaining / 2; idx++) {
+					fileNames[idx] = (idx + 1) + ".jpg";
+					fileNames[idx + numOfTilesRemaining] = (idx + 1) + ".jpg";
+				}
+				fileNames.shuffle();
+				
 				for (var x = 0; x<numOfCols;x++) {
 					for (var y = 0; y<numOfRows;y++) {
 						var img = new Image();
-						img.src = "images/C64.gif";
+						img.src = "images/" + tileSet + "/" + fileNames[numOfCols * y + x];
 						img.flipped = false;
 						img.X = x;
 						img.Y = y;
@@ -75,7 +85,7 @@
 						// switch the image source (back/front)
 						if (flipBack) {
 							// flipping to the generic side
-							img.src = "images/ani1.gif";
+							img.src = "images/" + tileSet + "/back.jpg";
 						} else {
 							// flipping to the image backside
 							img.src = image.src;
@@ -86,7 +96,7 @@
 					setTimeout(flip, 8, image, flipBack); // call myself with an 8 ms delay.
 				} else {
 					scaleInc = scaleInc * -1; // Finished scaling. Restore scaleInc for the next flip
-					img.src = "images/ani1.gif";
+					img.src = "images/" + tileSet + "/back.jpg";
 				}
             }
             
@@ -171,6 +181,13 @@
 				return rndedNum;
 			}
 			
+			// Add shuffle functionality to Array
+			Array.prototype.shuffle = function() {
+				var s = [];
+				while (this.length) s.push(this.splice(Math.random() * this.length, 1)[0]);
+				while (s.length) this.push(s.pop());
+				return this;
+			};
         </script>
     </head>
     <body onload="init()">
